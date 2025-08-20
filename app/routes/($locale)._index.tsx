@@ -45,11 +45,10 @@ export async function loader(args: LoaderFunctionArgs) {
  */
 async function loadCriticalData({context, request}: LoaderFunctionArgs) {
   const [{shop, hero}] = await Promise.all([
-    context.storefront.query(HOMEPAGE_SEO_QUERY, {
-      variables: {handle: 'freestyle'},
-    }),
-    // Add other queries here, so that they are loaded in parallel
-  ]);
+  context.storefront.query(HOMEPAGE_SEO_QUERY, {
+    variables: {handle: 'freestyle'},
+  }),
+]);
 
   return {
     shop,
@@ -239,21 +238,21 @@ const COLLECTION_CONTENT_FRAGMENT = `#graphql
     handle
     title
     descriptionHtml
-    heading: metafield(namespace: "hero", key: "title") {
+    heading: metafield(namespace: "custom", key: "hero_title") {
       value
     }
-    byline: metafield(namespace: "hero", key: "byline") {
+    byline: metafield(namespace: "custom", key: "hero_byline") {
       value
     }
-    cta: metafield(namespace: "hero", key: "cta") {
+    cta: metafield(namespace: "custom", key: "hero_cta") {
       value
     }
-    spread: metafield(namespace: "hero", key: "spread") {
+    spread: metafield(namespace: "custom", key: "hero_spread") {
       reference {
         ...Media
       }
     }
-    spreadSecondary: metafield(namespace: "hero", key: "spread_secondary") {
+    spreadSecondary: metafield(namespace: "custom", key: "hero_spread_secondary") {
       reference {
         ...Media
       }

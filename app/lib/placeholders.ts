@@ -5,7 +5,7 @@ const PLACEHOLDERS = {
   HEROS: [
     // primaryHero
     {
-      heading: {value: 'All Mountain All Season'},
+      heading: {value: 'All Mountain All Season this is text'},
       byline: {
         value: 'The All New Hydrogen Snowboard Exclusively From Shopify',
       },
@@ -193,41 +193,45 @@ const PLACEHOLDERS = {
  */
 
 export function getHeroPlaceholder(heros: any[]) {
+  console.log("=== RAW HEROS ===", JSON.stringify(heros, null, 2));
   if (!heros?.length) return [];
 
-  // when we pass a collection without metafields,
-  // we merge it with placeholder data
   return heros.map((hero, index) => {
-    // assume passed hero has metafields data already
+    console.log(`--- HERO ${index} BEFORE MERGE ---`, hero);
+
     if (hero?.heading?.value) {
+      console.log(`HERO ${index} already has heading.value`);
       return hero;
     }
 
-    // hero placeholder
     const placeholder = PLACEHOLDERS.HEROS[index];
+    console.log(`--- PLACEHOLDER ${index} ---`, placeholder);
 
-    // prioritize metafield data if available, else the hero hero values
-    // otherwise the placeholder values
-    const byLine =
-      hero?.byLine || hero?.descriptionHtml
-        ? {value: hero.descriptionHtml}
+    // merge
+    const byline =
+      hero?.byline?.value || hero?.descriptionHtml
+        ? { value: hero?.byline?.value || hero.descriptionHtml }
         : placeholder.byline;
 
     const heading =
-      hero?.heading || hero?.title ? {value: hero.title} : placeholder.heading;
+      hero?.heading?.value || hero?.title
+        ? { value: hero?.heading?.value || hero.title }
+        : placeholder.heading;
 
-    // merge hero placeholder with hero data
-    return {
+    const mergedHero = {
       heading,
-      byLine,
+      byline,
       cta: hero?.cta || placeholder.cta,
       handle: hero?.handle || placeholder.handle,
       id: hero?.id || index,
       spread: hero?.spread || placeholder.spread,
       spreadSecondary: hero?.spreadSecondary || placeholder.spreadSecondary,
-      height: placeholder?.height || undefined,
-      top: placeholder?.top || undefined,
+      height: placeholder?.height,
+      top: placeholder?.top,
     };
+
+    console.log(`--- HERO ${index} AFTER MERGE ---`, mergedHero);
+    return mergedHero;
   });
 }
 
