@@ -193,19 +193,15 @@ const PLACEHOLDERS = {
  */
 
 export function getHeroPlaceholder(heros: any[]) {
-  console.log("=== RAW HEROS ===", JSON.stringify(heros, null, 2));
   if (!heros?.length) return [];
 
   return heros.map((hero, index) => {
-    console.log(`--- HERO ${index} BEFORE MERGE ---`, hero);
 
     if (hero?.heading?.value) {
-      console.log(`HERO ${index} already has heading.value`);
       return hero;
     }
 
     const placeholder = PLACEHOLDERS.HEROS[index];
-    console.log(`--- PLACEHOLDER ${index} ---`, placeholder);
 
     // merge
     const byline =
@@ -230,7 +226,6 @@ export function getHeroPlaceholder(heros: any[]) {
       top: placeholder?.top,
     };
 
-    console.log(`--- HERO ${index} AFTER MERGE ---`, mergedHero);
     return mergedHero;
   });
 }

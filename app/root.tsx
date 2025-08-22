@@ -222,6 +222,7 @@ const LAYOUT_QUERY = `#graphql
     $language: LanguageCode
     $headerMenuHandle: String!
     $footerMenuHandle: String!
+    $customMenuHandle: String!
   ) @inContext(language: $language) {
     shop {
       ...Shop
@@ -230,6 +231,9 @@ const LAYOUT_QUERY = `#graphql
       ...Menu
     }
     footerMenu: menu(handle: $footerMenuHandle) {
+      ...Menu
+    }
+    customMenu: menu(handle: $customMenuHandle) {
       ...Menu
     }
   }
@@ -278,9 +282,11 @@ async function getLayoutData({storefront, env}: AppLoadContext) {
     variables: {
       headerMenuHandle: 'main-menu',
       footerMenuHandle: 'footer',
+      customMenuHandle: 'customer-account-main-menu',
       language: storefront.i18n.language,
     },
   });
+
 
   invariant(data, 'No data returned from Shopify API');
 
@@ -311,6 +317,15 @@ async function getLayoutData({storefront, env}: AppLoadContext) {
         customPrefixes,
       )
     : undefined;
+  const customMenu = data?.customMenu
+    ? parseMenu(
+        data.customMenu,
+        data.shop.primaryDomain.url,
+        env,
+        customPrefixes,
+      )
+    : undefined;
+ 
 
-  return {shop: data.shop, headerMenu, footerMenu};
+  return {shop: data.shop, headerMenu, footerMenu, customMenu};
 }
