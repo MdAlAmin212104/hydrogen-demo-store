@@ -1,7 +1,7 @@
 import { useParams, Form, Await, useRouteLoaderData } from '@remix-run/react';
 import useWindowScroll from 'react-use/esm/useWindowScroll';
 import { Disclosure } from '@headlessui/react';
-import { Suspense, useEffect, useMemo } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { CartForm } from '@shopify/hydrogen';
 
 import { type LayoutQuery } from 'storefrontapi.generated';
@@ -42,7 +42,7 @@ export function PageLayout({ children, layout }: LayoutProps) {
   return (
     <>
       <div className="flex flex-col min-h-screen">
-        <div className="">
+        <div>
           <a href="#mainContent" className="sr-only">
             Skip to content
           </a>
@@ -76,7 +76,6 @@ function Header({ title, menu }: { title: string; menu?: EnhancedMenu }) {
 
   const addToCartFetchers = useCartFetchers(CartForm.ACTIONS.LinesAdd);
 
-  // toggle cart drawer when adding to cart
   useEffect(() => {
     if (isCartOpen || !addToCartFetchers.length) return;
     openCart();
@@ -85,9 +84,7 @@ function Header({ title, menu }: { title: string; menu?: EnhancedMenu }) {
   return (
     <>
       <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
-      {menu && (
-        <MenuDrawer isOpen={isMenuOpen} onClose={closeMenu} menu={menu} />
-      )}
+      {menu && <MenuDrawer isOpen={isMenuOpen} onClose={closeMenu} menu={menu} />}
       <DesktopHeader
         isHome={isHome}
         title={title}
@@ -146,24 +143,69 @@ function MenuMobileNav({
   menu: EnhancedMenu;
   onClose: () => void;
 }) {
+  const [openItem, setOpenItem] = useState<string | null>(null);
+
+  const toggleDropdown = (id: string) => {
+    setOpenItem(openItem === id ? null : id);
+  };
+
   return (
     <nav className="grid gap-4 p-6 sm:gap-6 sm:px-12 sm:py-8">
-      {/* Top level menu items */}
       {(menu?.items || []).map((item) => (
-        <span key={item.id} className="block">
-          <Link
-            to={item.to}
-            target={item.target}
-            onClick={onClose}
-            className={({ isActive }) =>
-              isActive ? 'pb-1 border-b -mb-px' : 'pb-1'
-            }
-          >
-            <Text as="span" size="copy">
-              {item.title}
-            </Text>
-          </Link>
-        </span>
+        <div key={item.id} className="block">
+          <div
+  className="flex items-center justify-between cursor-pointer"
+  onClick={() => item?.items?.length > 0 && toggleDropdown(item.id)}
+>
+  {/* Top-level link (disabled if dropdown exists) */}
+  {item?.items?.length > 0 ? (
+    <span className="flex-1 pb-1">
+      <Text as="span" size="copy">
+        {item.title}
+      </Text>
+    </span>
+  ) : (
+    <Link
+      to={item.to}
+      target={item.target}
+      onClick={onClose}
+      className={({ isActive }) =>
+        isActive ? "pb-1 border-b -mb-px" : "pb-1"
+      }
+    >
+      <Text as="span" size="copy">
+        {item.title}
+      </Text>
+    </Link>
+  )}
+
+  {/* Dropdown arrow if sub-items exist */}
+  {item?.items?.length > 0 && (
+    <span className="ml-2 text-gray-600">
+      {openItem === item.id ? "▲" : "▼"}
+    </span>
+  )}
+</div>
+
+
+          {/* Submenu */}
+          {item?.items?.length > 0 && openItem === item.id && (
+            <ul className="ml-4 mt-2 space-y-2">
+              {item.items.map((subItem: any) => (
+                <li key={subItem.id}>
+                  <Link
+                    to={subItem.to}
+                    target={subItem.target}
+                    onClick={onClose}
+                    className="block text-gray-700"
+                  >
+                    {subItem.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       ))}
     </nav>
   );
@@ -180,8 +222,6 @@ function MobileHeader({
   openCart: () => void;
   openMenu: () => void;
 }) {
-  // useHeaderStyleFix(containerStyle, setContainerStyle, isHome);
-
   const params = useParams();
 
   return (
@@ -273,21 +313,17 @@ function DesktopHeader({
         <nav className="flex gap-8 relative">
           {(menu?.items || []).map((item) => (
             <div key={item.id} className="relative group">
-              {/* Top-level link */}
               <Link
                 to={item.to}
                 target={item.target}
                 prefetch="intent"
                 className={({ isActive }) =>
-                  isActive
-                    ? 'pb-1 border-b -mb-px'
-                    : 'pb-1'
+                  isActive ? 'pb-1 border-b -mb-px' : 'pb-1'
                 }
               >
                 {item.title}
               </Link>
 
-              {/* Dropdown if sub-items exist */}
               {item?.items?.length > 0 && (
                 <ul className="absolute left-0 mt-2 hidden w-48 bg-white shadow-lg rounded-lg group-hover:block z-50">
                   {item.items.map((subItem: any) => (
@@ -495,7 +531,7 @@ function FooterMenu({ menu }: { menu?: EnhancedMenu }) {
                     className={`${open ? `max-h-48 h-fit` : `max-h-0 md:max-h-fit`
                       } overflow-hidden transition-all duration-300`}
                   >
-                    <Suspense data-comment="This suspense fixes a hydration bug in Disclosure.Panel with static prop">
+                    <Suspense>
                       <Disclosure.Panel static>
                         <nav className={styles.nav}>
                           {item.items.map((subItem: ChildEnhancedMenuItem) => (
