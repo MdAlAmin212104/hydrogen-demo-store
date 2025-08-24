@@ -287,6 +287,7 @@ async function getLayoutData({storefront, env}: AppLoadContext) {
     },
   });
 
+  
 
   invariant(data, 'No data returned from Shopify API');
 
@@ -326,6 +327,5 @@ async function getLayoutData({storefront, env}: AppLoadContext) {
       )
     : undefined;
  
-
   return {shop: data.shop, headerMenu, footerMenu, customMenu};
 }
