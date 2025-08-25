@@ -1,17 +1,18 @@
-import { useParams, Form, Await, useRouteLoaderData } from '@remix-run/react';
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+import {useParams, Form, Await, useRouteLoaderData} from '@remix-run/react';
 import useWindowScroll from 'react-use/esm/useWindowScroll';
-import { Disclosure } from '@headlessui/react';
-import { Suspense, useEffect, useMemo, useState } from 'react';
-import { CartForm } from '@shopify/hydrogen';
+import {Disclosure} from '@headlessui/react';
+import {Suspense, useEffect, useMemo, useState} from 'react';
+import {CartForm} from '@shopify/hydrogen';
 
-import { type LayoutQuery } from 'storefrontapi.generated';
-import { Text, Heading, Section } from '~/components/Text';
-import { Link } from '~/components/Link';
-import { Cart } from '~/components/Cart';
-import { CartLoading } from '~/components/CartLoading';
-import { Input } from '~/components/Input';
-import { Drawer, useDrawer } from '~/components/Drawer';
-import { CountrySelector } from '~/components/CountrySelector';
+import {type LayoutQuery} from 'storefrontapi.generated';
+import {Text, Heading, Section} from '~/components/Text';
+import {Link} from '~/components/Link';
+import {Cart} from '~/components/Cart';
+import {CartLoading} from '~/components/CartLoading';
+import {Input} from '~/components/Input';
+import {Drawer, useDrawer} from '~/components/Drawer';
+import {CountrySelector} from '~/components/CountrySelector';
 import {
   IconMenu,
   IconCaret,
@@ -25,9 +26,9 @@ import {
   type ChildEnhancedMenuItem,
   useIsHomePath,
 } from '~/lib/utils';
-import { useIsHydrated } from '~/hooks/useIsHydrated';
-import { useCartFetchers } from '~/hooks/useCartFetchers';
-import type { RootLoader } from '~/root';
+import {useIsHydrated} from '~/hooks/useIsHydrated';
+import {useCartFetchers} from '~/hooks/useCartFetchers';
+import type {RootLoader} from '~/root';
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -37,8 +38,9 @@ type LayoutProps = {
   };
 };
 
-export function PageLayout({ children, layout }: LayoutProps) {
-  const { headerMenu, footerMenu } = layout || {};
+export function PageLayout({children, layout}: LayoutProps) {
+  const {headerMenu, footerMenu} = layout || {};
+
   return (
     <>
       <div className="flex flex-col min-h-screen">
@@ -48,7 +50,11 @@ export function PageLayout({ children, layout }: LayoutProps) {
           </a>
         </div>
         {headerMenu && layout?.shop.name && (
-          <Header title={layout.shop.name} menu={headerMenu} />
+          <Header
+            title={layout.shop.name}
+            logo={layout.shop.brand?.logo?.image?.url || ''}
+            menu={headerMenu}
+          />
         )}
         <main role="main" id="mainContent" className="flex-grow">
           {children}
@@ -59,7 +65,15 @@ export function PageLayout({ children, layout }: LayoutProps) {
   );
 }
 
-function Header({ title, menu }: { title: string; menu?: EnhancedMenu }) {
+function Header({
+  title,
+  menu,
+  logo,
+}: {
+  title: string;
+  menu?: EnhancedMenu;
+  logo?: string;
+}) {
   const isHome = useIsHomePath();
 
   const {
@@ -84,16 +98,20 @@ function Header({ title, menu }: { title: string; menu?: EnhancedMenu }) {
   return (
     <>
       <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
-      {menu && <MenuDrawer isOpen={isMenuOpen} onClose={closeMenu} menu={menu} />}
+      {menu && (
+        <MenuDrawer isOpen={isMenuOpen} onClose={closeMenu} menu={menu} />
+      )}
       <DesktopHeader
         isHome={isHome}
         title={title}
+        logo={logo}
         menu={menu}
         openCart={openCart}
       />
       <MobileHeader
         isHome={isHome}
         title={title}
+        logo={logo}
         openCart={openCart}
         openMenu={openMenu}
       />
@@ -101,7 +119,7 @@ function Header({ title, menu }: { title: string; menu?: EnhancedMenu }) {
   );
 }
 
-function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function CartDrawer({isOpen, onClose}: {isOpen: boolean; onClose: () => void}) {
   const rootData = useRouteLoaderData<RootLoader>('root');
   if (!rootData) return null;
 
@@ -154,39 +172,25 @@ function MenuMobileNav({
       {(menu?.items || []).map((item) => (
         <div key={item.id} className="block">
           <div
-  className="flex items-center justify-between cursor-pointer"
-  onClick={() => item?.items?.length > 0 && toggleDropdown(item.id)}
->
-  {/* Top-level link (disabled if dropdown exists) */}
-  {item?.items?.length > 0 ? (
-    <span className="flex-1 pb-1">
-      <Text as="span" size="copy">
-        {item.title}
-      </Text>
-    </span>
-  ) : (
-    <Link
-      to={item.to}
-      target={item.target}
-      onClick={onClose}
-      className={({ isActive }) =>
-        isActive ? "pb-1 border-b -mb-px" : "pb-1"
-      }
-    >
-      <Text as="span" size="copy">
-        {item.title}
-      </Text>
-    </Link>
-  )}
-
-  {/* Dropdown arrow if sub-items exist */}
-  {item?.items?.length > 0 && (
-    <span className="ml-2 text-gray-600">
-      {openItem === item.id ? "▲" : "▼"}
-    </span>
-  )}
-</div>
-
+            role="button"
+            tabIndex={0}
+            className="flex items-center justify-between cursor-pointer"
+            onClick={() => item?.items?.length > 0 && toggleDropdown(item.id)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                toggleDropdown(item.id);
+              }
+            }}
+          >
+            <Text as="span" size="copy">
+              {item.title}
+            </Text>
+            {item?.items?.length > 0 && (
+              <span className="ml-2 text-gray-600">
+                {openItem === item.id ? '▲' : '▼'}
+              </span>
+            )}
+          </div>
 
           {/* Submenu */}
           {item?.items?.length > 0 && openItem === item.id && (
@@ -216,8 +220,10 @@ function MobileHeader({
   isHome,
   openCart,
   openMenu,
+  logo,
 }: {
   title: string;
+  logo?: string;
   isHome: boolean;
   openCart: () => void;
   openMenu: () => void;
@@ -227,10 +233,11 @@ function MobileHeader({
   return (
     <header
       role="banner"
-      className={`${isHome
+      className={`${
+        isHome
           ? 'bg-primary/80 dark:bg-contrast/60 text-contrast dark:text-primary shadow-darkHeader'
           : 'bg-contrast/80 text-primary'
-        } flex lg:hidden items-center h-nav sticky backdrop-blur-lg z-40 top-0 justify-between w-full leading-none gap-4 px-4 md:px-8`}
+      } flex lg:hidden items-center h-nav sticky backdrop-blur-lg z-40 top-0 justify-between w-full leading-none gap-4 px-4 md:px-8`}
     >
       <div className="flex items-center justify-start w-full gap-4">
         <button
@@ -268,12 +275,20 @@ function MobileHeader({
         className="flex items-center self-stretch leading-[3rem] md:leading-[4rem] justify-center flex-grow w-full h-full"
         to="/"
       >
-        <Heading
-          className="font-bold text-center leading-none"
-          as={isHome ? 'h1' : 'h2'}
-        >
-          {title}
-        </Heading>
+        {logo ? (
+          <img
+            src={logo}
+            alt="Logo"
+            className="h-10 md:h-12 w-auto object-contain"
+          />
+        ) : (
+          <Heading
+            className="font-bold text-center leading-none"
+            as={isHome ? 'h1' : 'h2'}
+          >
+            {title}
+          </Heading>
+        )}
       </Link>
 
       <div className="flex items-center justify-end w-full gap-4">
@@ -289,26 +304,34 @@ function DesktopHeader({
   menu,
   openCart,
   title,
+  logo,
 }: {
   isHome: boolean;
   openCart: () => void;
   menu?: EnhancedMenu;
   title: string;
+  logo?: string;
 }) {
   const params = useParams();
-  const { y } = useWindowScroll();
+  const {y} = useWindowScroll();
   return (
     <header
       role="banner"
-      className={`${isHome
+      className={`${
+        isHome
           ? 'bg-primary/80 dark:bg-contrast/60 text-contrast dark:text-primary shadow-darkHeader'
           : 'bg-contrast/80 text-primary'
-        } ${!isHome && y > 50 && ' shadow-lightHeader'
-        } hidden h-nav lg:flex items-center sticky transition duration-300 backdrop-blur-lg z-40 top-0 justify-between w-full leading-none gap-8 px-12 py-8`}
+      } ${
+        !isHome && y > 50 && ' shadow-lightHeader'
+      } hidden h-nav lg:flex items-center sticky transition duration-300 backdrop-blur-lg z-40 top-0 justify-between w-full leading-none gap-8 px-12 py-8`}
     >
-      <div className="flex gap-12">
+      <div className="flex gap-12 justify-center items-center">
         <Link className="font-bold" to="/" prefetch="intent">
-          {title}
+          {logo ? (
+            <img src={logo} alt="Logo" className="h-12 w-auto" />
+          ) : (
+            <span>{title}</span>
+          )}
         </Link>
         <nav className="flex gap-8 relative">
           {(menu?.items || []).map((item) => (
@@ -317,7 +340,7 @@ function DesktopHeader({
                 to={item.to}
                 target={item.target}
                 prefetch="intent"
-                className={({ isActive }) =>
+                className={({isActive}) =>
                   isActive ? 'pb-1 border-b -mb-px' : 'pb-1'
                 }
               >
@@ -374,7 +397,7 @@ function DesktopHeader({
   );
 }
 
-function AccountLink({ className }: { className?: string }) {
+function AccountLink({className}: {className?: string}) {
   const rootData = useRouteLoaderData<RootLoader>('root');
   const isLoggedIn = rootData?.isLoggedIn;
 
@@ -430,10 +453,11 @@ function Badge({
       <>
         <IconBag />
         <div
-          className={`${dark
+          className={`${
+            dark
               ? 'text-primary bg-contrast dark:text-contrast dark:bg-primary'
               : 'text-contrast bg-primary'
-            } absolute bottom-1 right-1 text-[0.625rem] font-medium subpixel-antialiased h-3 min-w-[0.75rem] flex items-center justify-center leading-none text-center rounded-full w-auto px-[0.125rem] pb-px`}
+          } absolute bottom-1 right-1 text-[0.625rem] font-medium subpixel-antialiased h-3 min-w-[0.75rem] flex items-center justify-center leading-none text-center rounded-full w-auto px-[0.125rem] pb-px`}
         >
           <span>{count || 0}</span>
         </div>
@@ -459,7 +483,7 @@ function Badge({
   );
 }
 
-function Footer({ menu }: { menu?: EnhancedMenu }) {
+function Footer({menu}: {menu?: EnhancedMenu}) {
   const isHome = useIsHomePath();
   const itemsCount = menu
     ? menu?.items?.length + 1 > 4
@@ -487,7 +511,7 @@ function Footer({ menu }: { menu?: EnhancedMenu }) {
   );
 }
 
-function FooterLink({ item }: { item: ChildEnhancedMenuItem }) {
+function FooterLink({item}: {item: ChildEnhancedMenuItem}) {
   if (item.to.startsWith('http')) {
     return (
       <a href={item.to} target={item.target} rel="noopener noreferrer">
@@ -503,7 +527,7 @@ function FooterLink({ item }: { item: ChildEnhancedMenuItem }) {
   );
 }
 
-function FooterMenu({ menu }: { menu?: EnhancedMenu }) {
+function FooterMenu({menu}: {menu?: EnhancedMenu}) {
   const styles = {
     section: 'grid gap-4',
     nav: 'grid gap-2 pb-6',
@@ -514,7 +538,7 @@ function FooterMenu({ menu }: { menu?: EnhancedMenu }) {
       {(menu?.items || []).map((item) => (
         <section key={item.id} className={styles.section}>
           <Disclosure>
-            {({ open }) => (
+            {({open}) => (
               <>
                 <Disclosure.Button className="text-left md:cursor-default">
                   <Heading className="flex justify-between" size="lead" as="h3">
@@ -528,8 +552,9 @@ function FooterMenu({ menu }: { menu?: EnhancedMenu }) {
                 </Disclosure.Button>
                 {item?.items?.length > 0 ? (
                   <div
-                    className={`${open ? `max-h-48 h-fit` : `max-h-0 md:max-h-fit`
-                      } overflow-hidden transition-all duration-300`}
+                    className={`${
+                      open ? `max-h-48 h-fit` : `max-h-0 md:max-h-fit`
+                    } overflow-hidden transition-all duration-300`}
                   >
                     <Suspense>
                       <Disclosure.Panel static>

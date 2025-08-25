@@ -14,6 +14,7 @@ module.exports = {
     'no-useless-escape': 'off',
     '@typescript-eslint/no-non-null-asserted-optional-chain': 'off',
     'no-case-declarations': 'off',
+     "prettier/prettier": "off",
     // TODO: Remove jest plugin from hydrogen/eslint-plugin
     'jest/no-deprecated-functions': 'off',
     'import/order': [
@@ -43,5 +44,6 @@ module.exports = {
         'newlines-between': 'always',
       },
     ],
+    
   },
 };
